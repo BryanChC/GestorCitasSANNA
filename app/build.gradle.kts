@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.charahua.gestocitassanna"
+    namespace = "com.charahua.gestorcitassanna"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.charahua.gestocitassanna"
+        applicationId = "com.charahua.gestorcitassanna"
         minSdk = 30
         targetSdk = 37
         versionCode = 1

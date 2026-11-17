@@ -1,7 +1,7 @@
-# GestoCitasSANNA — Especificación Técnica
+# GestorCitasSANNA — Especificación Técnica
 
 ## 1. Descripción
-**GestoCitasSANNA** es una aplicación móvil nativa desarrollada para Android que optimiza la gestión integral de citas médicas, la administración de recursos clínicos (sedes, especialidades, médicos, horarios y seguros) y el control de costos operativos dentro de una red de salud. 
+**GestorCitasSANNA** es una aplicación móvil nativa desarrollada para Android que optimiza la gestión integral de citas médicas, la administración de recursos clínicos (sedes, especialidades, médicos, horarios y seguros) y el control de costos operativos dentro de una red de salud. 
 
 El proyecto resuelve la necesidad de agilizar la programación de citas para pacientes y centralizar la administración operativa para el personal autorizado, garantizando una experiencia fluida, segura y con persistencia local robusta bajo un enfoque *offline-first*.
 
@@ -61,7 +61,7 @@ El proyecto sigue rigurosamente los principios de **Architecture Components** de
 
 ## 5. Estructura del Proyecto
 ```text
-com.charahua.gestocitassanna/
+com.charahua.gestorcitassanna/
 ├── MainActivity.kt
 ├── data/
 │   ├── local/
@@ -193,7 +193,7 @@ Para clonar, compilar y ejecutar el proyecto en su entorno de desarrollo:
 
 ### Pasos de Ejecución
 1. Clonar el repositorio o descargar el proyecto en su equipo.
-2. Abrir **Android Studio** y seleccionar **Open an Existing Project**, indicando la carpeta raíz `GestoCitasSANNA`.
+2. Abrir **Android Studio** y seleccionar **Open an Existing Project**, indicando la carpeta raíz `GestorCitasSANNA`.
 3. Esperar a que Gradle sincronice automáticamente las dependencias (o hacer clic en *Sync Project with Gradle Files*).
 4. Conectar un dispositivo físico con depuración USB activada o iniciar un emulador con API 30+.
 5. Hacer clic en el botón **Run** (`Shift + F10`) en la barra superior de Android Studio.
@@ -204,7 +204,7 @@ Para clonar, compilar y ejecutar el proyecto en su entorno de desarrollo:
   - Sistema de autenticación con DataStore y cifrado de claves.
   - Portal del Paciente con reserva de citas y visualización de historial.
   - Panel de Administración completo con sedes, médicos, horarios, especialidades, seguros y costos.
-  - Navegación robusta con Compose Navigation y paso seguro de argumentos.
+  - Navegografía robusta con Compose Navigation y paso seguro de argumentos.
 - **Pendientes / Evolución Futura:**
   - Integración opcional con servicios backend en la nube (API REST / Firebase).
   - Pasarela de pagos en línea para copagos y tarifas médicas.
