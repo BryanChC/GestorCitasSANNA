@@ -1,0 +1,7 @@
+# Propietario del código de GestorCitasSANNA
+# Todos los cambios requieren revisión de BryanChC
+
+* @BryanChC
+
+# Proteger también el archivo CODEOWNERS
+/.github/CODEOWNERS @BryanChC
