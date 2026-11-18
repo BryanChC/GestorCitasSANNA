@@ -247,7 +247,8 @@ fun HomeAdminScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(40.dp))
+
         Text(text = "Módulos de Gestión", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = SannaPrimary)
         Spacer(modifier = Modifier.height(12.dp))
 
