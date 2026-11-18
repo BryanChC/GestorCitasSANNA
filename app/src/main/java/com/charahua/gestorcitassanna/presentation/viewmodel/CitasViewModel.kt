@@ -92,6 +92,13 @@ class CitasViewModel(application: Application) : AndroidViewModel(application) {
     fun getCitasForPaciente(pacienteId: Long): Flow<List<CitaEntity>> {
         return repository.getCitasForPacienteFlow(pacienteId)
     }
+    suspend fun getCitaById(
+        citaId: Long
+    ): CitaEntity? {
+
+        return repository.getCitaById(citaId)
+
+    }
 
     fun reservarCita(
         pacienteId: Long,

@@ -5,17 +5,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.charahua.gestorcitassanna.presentation.screens.citas.BuscarMedicoScreen
 import com.charahua.gestorcitassanna.presentation.screens.citas.MisCitasScreen
 import com.charahua.gestorcitassanna.presentation.screens.perfil.PerfilScreen
 import com.charahua.gestorcitassanna.presentation.viewmodel.CitasViewModel
 import com.charahua.gestorcitassanna.ui.theme.*
+import com.charahua.gestorcitassanna.presentation.components.DashboardPaciente
+import androidx.compose.material.icons.filled.Home
 
 @Composable
 fun HomePacienteScreen(
@@ -27,6 +27,21 @@ fun HomePacienteScreen(
     onLogout: () -> Unit
 ) {
     var selectedTab by remember { mutableStateOf(0) }
+    val citasFlow = remember(pacienteId) {
+        citasViewModel.getCitasForPaciente(pacienteId)
+    }
+
+    val citas by citasFlow.collectAsState(
+        initial = emptyList()
+    )
+
+    val proximaCita = citas
+        .filter {
+            it.estado == "PROGRAMADA" ||
+                    it.estado == "CONFIRMADA" ||
+                    it.estado == "REPROGRAMADA"
+        }
+        .firstOrNull()
 
     Scaffold(
         bottomBar = {
@@ -34,10 +49,26 @@ fun HomePacienteScreen(
                 containerColor = SannaBackground,
                 tonalElevation = 6.dp
             ) {
-
                 NavigationBarItem(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Home,
+                            contentDescription = "Inicio",
+                            tint = if (selectedTab == 0) SannaPrimary else SannaSecondaryText
+                        )
+                    },
+                    label = {
+                        Text(
+                            "Inicio",
+                            color = if (selectedTab == 0) SannaPrimary else SannaSecondaryText
+                        )
+                    }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
                     icon = {
                         Icon(
                             imageVector = Icons.Default.DateRange,
@@ -47,41 +78,18 @@ fun HomePacienteScreen(
                     },
                     label = { Text("Mis Citas", color = if (selectedTab == 0) SannaPrimary else SannaSecondaryText) }
                 )
-
                 NavigationBarItem(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.MedicalServices,
-                            contentDescription = "Busca tu médico",
-                            tint = if (selectedTab == 1) SannaPrimary else SannaSecondaryText
-                        )
-                    },
-                    label = {
-                        Text(
-                            text = "Busca tu médico",
-                            color = if (selectedTab == 1) SannaPrimary else SannaSecondaryText,
-                            maxLines = 1 // Para evitar que se desborde el texto
-                        )
-                    }
-                )
-
-
-                NavigationBarItem(
-                    selected = false,
+                    selected = selectedTab == 2,
                     onClick = { onNavigateToReservar() },
                     icon = {
                         Icon(
                             imageVector = Icons.Default.AddCircleOutline,
                             contentDescription = "Reservar Cita",
-                            tint = SannaSecondaryText
+                            tint = SannaPrimary
                         )
                     },
-                    label = { Text("Reservar", color = SannaSecondaryText) }
+                    label = { Text("Reservar", color = SannaPrimary) }
                 )
-
-
                 NavigationBarItem(
                     selected = selectedTab == 3,
                     onClick = { selectedTab = 3 },
@@ -89,19 +97,46 @@ fun HomePacienteScreen(
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = "Perfil",
-                            tint = if (selectedTab == 3) SannaPrimary else SannaSecondaryText
+                            tint = if (selectedTab == 2) SannaPrimary else SannaSecondaryText
                         )
                     },
-                    label = { Text("Perfil", color = if (selectedTab == 3) SannaPrimary else SannaSecondaryText) }
+                    label = { Text("Perfil", color = if (selectedTab == 2) SannaPrimary else SannaSecondaryText) }
                 )
             }
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize().background(SannaBackground)) {
             when (selectedTab) {
-                0 -> MisCitasScreen(viewModel = citasViewModel, pacienteId = pacienteId, onCitaClick = onCitaClick)
-                1 -> BuscarMedicoScreen(viewModel = citasViewModel, pacienteId = pacienteId, onBackToReservar = { selectedTab = 0 })
-                3 -> PerfilScreen(userId = userId, onLogout = onLogout)
+
+
+                0 -> {
+                    DashboardPaciente(
+                        tieneCitas = proximaCita != null,
+                        fecha = proximaCita?.fecha ?: "",
+                        hora = proximaCita?.hora ?: "",
+                        motivo = proximaCita?.motivo ?: "",
+                        onVerCitas = {
+                            proximaCita?.let {
+                                onCitaClick(it.id)
+                            }
+                        }
+                    )
+                }
+
+                1 -> {
+                    MisCitasScreen(
+                        viewModel = citasViewModel,
+                        pacienteId = pacienteId,
+                        onCitaClick = onCitaClick
+                    )
+                }
+
+                3 -> {
+                    PerfilScreen(
+                        userId = userId,
+                        onLogout = onLogout
+                    )
+                }
             }
         }
     }
