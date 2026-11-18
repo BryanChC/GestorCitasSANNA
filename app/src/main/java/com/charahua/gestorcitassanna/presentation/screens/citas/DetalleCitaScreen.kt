@@ -26,6 +26,7 @@ fun DetalleCitaScreen(
     var showCancelarDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(citaId) {
+        cita = viewModel.getCitaById(citaId)
     }
 
     Column(
@@ -40,6 +41,47 @@ fun DetalleCitaScreen(
                 .padding(24.dp)
         ) {
             Text("Gestión y Detalles de Cita #$citaId", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = SannaPrimary)
+            Spacer(
+                modifier = Modifier.height(20.dp)
+            )
+
+            cita?.let {
+
+                Card(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+
+                        Text(
+                            text = "Estado: ${it.estado}",
+                            fontWeight = FontWeight.Bold,
+                            color = SannaPrimary
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(8.dp)
+                        )
+
+                        Text("Fecha: ${it.fecha}")
+
+                        Text("Hora: ${it.hora}")
+
+                        Text("Motivo: ${it.motivo}")
+
+                        Text("Costo: S/ ${it.costo}")
+
+                    }
+
+                }
+
+                Spacer(
+                    modifier = Modifier.height(20.dp)
+                )
+
+            }
             Spacer(modifier = Modifier.height(24.dp))
             MinimalButton(
                 text = "Reprogramar Cita",

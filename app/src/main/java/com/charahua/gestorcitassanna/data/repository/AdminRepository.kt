@@ -50,12 +50,14 @@ class AdminRepository(
         val sedes = sedeDao.getAll().size
         val medicos = medicoDao.getAll().size
         val citas = citaDao.getAll().size
-        DashboardStats(sedesCount = sedes, medicosCount = medicos, citasCount = citas)
+        val especialidades = 5
+        DashboardStats(sedesCount = sedes, medicosCount = medicos, citasCount = citas, especialidadesCount = especialidades)
     }
 }
 
 data class DashboardStats(
     val sedesCount: Int,
     val medicosCount: Int,
-    val citasCount: Int
+    val citasCount: Int,
+    val especialidadesCount: Int
 )

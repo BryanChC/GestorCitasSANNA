@@ -53,12 +53,20 @@ interface MedicoDao {
 interface MedicoSedeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(item: MedicoSedeEntity): Long
+
+
+    @Query("SELECT * FROM medico_sedes")
+    suspend fun getAll(): List<MedicoSedeEntity>
 }
 
 @Dao
 interface MedicoEspecialidadDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(item: MedicoEspecialidadEntity): Long
+
+
+    @Query("SELECT * FROM medico_especialidades")
+    suspend fun getAll(): List<MedicoEspecialidadEntity>
 }
 
 @Dao
