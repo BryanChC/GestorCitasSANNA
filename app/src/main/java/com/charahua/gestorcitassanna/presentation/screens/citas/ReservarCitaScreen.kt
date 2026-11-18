@@ -8,9 +8,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,6 +30,7 @@ import com.charahua.gestorcitassanna.presentation.components.MinimalButton
 import com.charahua.gestorcitassanna.presentation.components.MinimalCard
 import com.charahua.gestorcitassanna.presentation.components.MinimalTextField
 import com.charahua.gestorcitassanna.presentation.components.MinimalTopBar
+import com.charahua.gestorcitassanna.presentation.components.TarjetaMedicoSanna
 import com.charahua.gestorcitassanna.presentation.viewmodel.CitasViewModel
 import com.charahua.gestorcitassanna.ui.theme.*
 import java.text.SimpleDateFormat
@@ -72,7 +70,7 @@ fun ReservarCitaScreen(
     }
 
     var fecha by remember { mutableStateOf(todayFormatted) }
-    var hora by remember { mutableStateOf("09:00 AM") }
+    var hora by remember { mutableStateOf("") }
     var modalidad by remember { mutableStateOf("Presencial en Sede") }
     var selectedAseguradoraId by remember { mutableStateOf<Long?>(null) }
     var selectedAseguradoraNombre by remember { mutableStateOf("Particular / Sin Seguro") }
@@ -158,7 +156,7 @@ fun ReservarCitaScreen(
         if (bookingResult != null && bookingResult!!.isSuccess) {
             isProcessingPayment = false
             isPaymentSuccessAnimated = true
-            step = 8
+            step = 7 // Redirige al paso de comprobante
         } else if (bookingResult != null && bookingResult!!.isFailure) {
             isProcessingPayment = false
             pagoErrorMsg = bookingResult!!.exceptionOrNull()?.localizedMessage ?: "Error procesando la transacción"
@@ -167,7 +165,7 @@ fun ReservarCitaScreen(
 
     val backAction: (() -> Unit)? = when {
         isProcessingPayment -> null
-        step in 2..7 -> { { step-- } }
+        step in 2..6 -> { { step-- } }
         step == 1 -> onBack
         else -> null
     }
@@ -178,18 +176,18 @@ fun ReservarCitaScreen(
             .background(SannaBackground)
     ) {
         MinimalTopBar(
-            title = if (step == 8) "Comprobante de Reserva" else "Reservar Cita Médica",
+            title = if (step == 7) "Comprobante de Reserva" else "Reservar Cita Médica",
             onBackClick = backAction
         )
 
-        if (step < 8) {
+        if (step < 7) {
             Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "PASO $step DE 7",
+                        text = "PASO $step DE 6",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = SannaSecondaryText
@@ -198,10 +196,9 @@ fun ReservarCitaScreen(
                         text = when (step) {
                             1 -> "Sede"
                             2 -> "Especialidad"
-                            3 -> "Médico"
+                            3 -> "Médico y Horario"
                             4 -> "Fecha"
-                            5 -> "Horario"
-                            6 -> "Modalidad y Cobertura"
+                            5 -> "Modalidad y Cobertura"
                             else -> "Pasarela de Pago"
                         },
                         fontSize = 12.sp,
@@ -211,7 +208,7 @@ fun ReservarCitaScreen(
                 }
                 Spacer(modifier = Modifier.height(6.dp))
                 LinearProgressIndicator(
-                    progress = { step / 7f },
+                    progress = { step / 6f },
                     modifier = Modifier.fillMaxWidth().height(4.dp),
                     color = SannaPrimary,
                     trackColor = SannaSecondary
@@ -260,7 +257,7 @@ fun ReservarCitaScreen(
                                         Column(modifier = Modifier.padding(16.dp)) {
                                             Text(sede.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = SannaPrimary)
                                             Spacer(modifier = Modifier.height(4.dp))
-                                            Text("📍 ${sede.direccion} - ${sede.distrito}", fontSize = 13.sp, color = SannaSecondaryText)
+                                            Text("📍 ${sede.direccion}\n${sede.distrito}", fontSize = 13.sp, color = SannaSecondaryText)
                                             Text("📞 Central: ${sede.telefono}", fontSize = 12.sp, color = SannaSecondaryText)
                                         }
                                     }
@@ -302,49 +299,48 @@ fun ReservarCitaScreen(
                         }
                     }
                     3 -> {
+
                         Column(modifier = Modifier.fillMaxSize()) {
-                            Text("Selecciona Médico Especialista", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = SannaPrimary)
+                            Text("Selecciona Médico y Horario", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = SannaPrimary)
                             Text("Especialidad: $selectedEspNombre en $selectedSedeNombre", fontSize = 13.sp, color = SannaSecondaryText)
                             Spacer(modifier = Modifier.height(16.dp))
 
                             if (medicos.isEmpty()) {
                                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    Text("No se encontraron médicos asignados a esta especialidad en la sede seleccionada.", color = SannaError, fontSize = 14.sp)
+                                    Text("No se encontraron médicos asignados a esta especialidad en la sede seleccionada.", color = SannaError, fontSize = 14.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                                 }
                             } else {
                                 LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.weight(1f)) {
                                     items(medicos) { med ->
-                                        Card(
-                                            shape = RoundedCornerShape(14.dp),
-                                            colors = CardDefaults.cardColors(containerColor = SannaSurface),
-                                            border = BorderStroke(1.dp, SannaBorder),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable {
-                                                    selectedMedicoId = med.id
-                                                    selectedMedicoNombre = "Dr. ${med.nombre} ${med.apellido}"
-                                                    step = 4
-                                                }
-                                        ) {
-                                            Row(
-                                                modifier = Modifier.padding(16.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Column(modifier = Modifier.weight(1f)) {
-                                                    Text("Dr. ${med.nombre} ${med.apellido}", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = SannaPrimary)
-                                                    Spacer(modifier = Modifier.height(4.dp))
-                                                    Text("Colegiatura: ${med.colegiatura}", fontSize = 13.sp, color = SannaSecondaryText)
-                                                }
-                                                Surface(
-                                                    color = SannaSecondary,
-                                                    shape = RoundedCornerShape(8.dp)
-                                                ) {
-                                                    Text("Seleccionar", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = SannaPrimary, modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp))
-                                                }
+                                        // Horarios de prueba mientras la BD se alimenta
+                                        val horariosList = listOf("08:00 AM", "09:30 AM", "11:00 AM", "03:00 PM", "04:30 PM")
+
+                                        TarjetaMedicoSanna(
+                                            nombreMedico = "Dr. ${med.nombre} ${med.apellido}",
+                                            especialidad = selectedEspNombre,
+                                            cmp = med.colegiatura.replace("CMP ", ""),
+                                            horariosDisponibles = horariosList,
+                                            horarioSeleccionado = if (selectedMedicoId == med.id) hora else null,
+                                            onHorarioSelect = { h ->
+                                                selectedMedicoId = med.id
+                                                selectedMedicoNombre = "Dr. ${med.nombre} ${med.apellido}"
+                                                hora = h
                                             }
-                                        }
+                                        )
                                     }
                                 }
+
+                                Spacer(modifier = Modifier.height(12.dp))
+                                MinimalButton(
+                                    text = "Continuar a Fecha",
+                                    onClick = {
+                                        if (selectedMedicoId != null && hora.isNotEmpty()) {
+                                            step = 4
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
                             }
                         }
                     }
@@ -392,60 +388,18 @@ fun ReservarCitaScreen(
                             Text("Fecha elegida: $fecha", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = SannaPrimary)
 
                             Spacer(modifier = Modifier.height(20.dp))
-                            MinimalButton(text = "Continuar a Horarios", onClick = { step = 5 }, modifier = Modifier.fillMaxWidth())
+                            MinimalButton(text = "Continuar a Cobertura", onClick = { step = 5 }, modifier = Modifier.fillMaxWidth())
                             Spacer(modifier = Modifier.height(20.dp))
                         }
                     }
                     5 -> {
-                        Column(modifier = Modifier.fillMaxSize()) {
-                            Text("Selecciona Horario Disponible", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = SannaPrimary)
-                            Text("Fecha seleccionada: $fecha - $selectedMedicoNombre", fontSize = 13.sp, color = SannaSecondaryText)
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            val horariosList = listOf(
-                                "08:00 AM", "08:30 AM", "09:00 AM", "09:30 AM",
-                                "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
-                                "12:00 PM", "03:00 PM", "03:30 PM", "04:00 PM"
-                            )
-
-                            LazyVerticalGrid(
-                                columns = GridCells.Fixed(2),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                verticalArrangement = Arrangement.spacedBy(10.dp),
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                items(horariosList) { h ->
-                                    val isSel = hora == h
-                                    Card(
-                                        shape = RoundedCornerShape(12.dp),
-                                        colors = CardDefaults.cardColors(containerColor = if (isSel) SannaPrimary else SannaSurface),
-                                        border = BorderStroke(1.dp, if (isSel) SannaPrimary else SannaBorder),
-                                        modifier = Modifier.clickable {
-                                            hora = h
-                                            step = 6
-                                        }
-                                    ) {
-                                        Box(modifier = Modifier.padding(14.dp), contentAlignment = Alignment.Center) {
-                                            Text(
-                                                text = h,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 14.sp,
-                                                color = if (isSel) SannaOnPrimary else SannaPrimary
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    6 -> {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .verticalScroll(rememberScrollState())
                         ) {
                             Text("Modalidad y Cobertura de Seguro", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = SannaPrimary)
-                            Text("Paso 6 de 7 - Selección de beneficios", fontSize = 13.sp, color = SannaSecondaryText)
+                            Text("Paso 5 de 6 - Selección de beneficios", fontSize = 13.sp, color = SannaSecondaryText)
                             Spacer(modifier = Modifier.height(16.dp))
 
                             Text("1. Modalidad de Atención:", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = SannaPrimary)
@@ -519,7 +473,7 @@ fun ReservarCitaScreen(
                                 ) {
                                     Column(modifier = Modifier.padding(14.dp)) {
                                         Text(aseg.nombre, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = SannaPrimary)
-                                        Text("RUC: ${aseg.ruc} - Cobertura de Convenio Aplicada", fontSize = 12.sp, color = SannaSuccess)
+                                        Text("RUC: ${aseg.ruc}\nCobertura de Convenio Aplicada", fontSize = 12.sp, color = SannaSuccess)
                                     }
                                 }
                             }
@@ -527,13 +481,13 @@ fun ReservarCitaScreen(
                             Spacer(modifier = Modifier.height(24.dp))
                             MinimalButton(
                                 text = "Continuar a Pasarela de Pago",
-                                onClick = { step = 7 },
+                                onClick = { step = 6 },
                                 modifier = Modifier.fillMaxWidth()
                             )
                             Spacer(modifier = Modifier.height(24.dp))
                         }
                     }
-                    7 -> {
+                    6 -> {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -555,7 +509,7 @@ fun ReservarCitaScreen(
                                     }
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text("Sede: $selectedSedeNombre", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = SannaPrimary)
-                                    Text("Especialidad: $selectedEspNombre - $selectedMedicoNombre", fontSize = 13.sp, color = SannaPrimary)
+                                    Text("Especialidad: $selectedEspNombre\nMédico: $selectedMedicoNombre", fontSize = 13.sp, color = SannaPrimary)
                                     Text("Fecha y Hora: $fecha a las $hora", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = SannaPrimary)
                                     Text("Modalidad: $modalidad", fontSize = 13.sp, color = SannaSecondaryText)
                                     Text("Seguro / Cobertura: $selectedAseguradoraNombre", fontSize = 13.sp, color = SannaSecondaryText)
@@ -595,7 +549,8 @@ fun ReservarCitaScreen(
                                                 },
                                                 fontSize = 12.sp,
                                                 fontWeight = FontWeight.Bold,
-                                                color = SannaPrimary
+                                                color = SannaPrimary,
+                                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
                                             )
                                         }
                                     }
@@ -743,7 +698,7 @@ fun ReservarCitaScreen(
                             Spacer(modifier = Modifier.height(28.dp))
                         }
                     }
-                    8 -> {
+                    7 -> {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
