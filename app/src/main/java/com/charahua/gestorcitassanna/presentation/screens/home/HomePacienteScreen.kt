@@ -14,6 +14,8 @@ import com.charahua.gestorcitassanna.presentation.screens.citas.MisCitasScreen
 import com.charahua.gestorcitassanna.presentation.screens.perfil.PerfilScreen
 import com.charahua.gestorcitassanna.presentation.viewmodel.CitasViewModel
 import com.charahua.gestorcitassanna.ui.theme.*
+import com.charahua.gestorcitassanna.presentation.components.DashboardPaciente
+import androidx.compose.material.icons.filled.Home
 
 @Composable
 fun HomePacienteScreen(
@@ -25,6 +27,21 @@ fun HomePacienteScreen(
     onLogout: () -> Unit
 ) {
     var selectedTab by remember { mutableStateOf(0) }
+    val citasFlow = remember(pacienteId) {
+        citasViewModel.getCitasForPaciente(pacienteId)
+    }
+
+    val citas by citasFlow.collectAsState(
+        initial = emptyList()
+    )
+
+    val proximaCita = citas
+        .filter {
+            it.estado == "PROGRAMADA" ||
+                    it.estado == "CONFIRMADA" ||
+                    it.estado == "REPROGRAMADA"
+        }
+        .firstOrNull()
 
     Scaffold(
         bottomBar = {
@@ -37,6 +54,23 @@ fun HomePacienteScreen(
                     onClick = { selectedTab = 0 },
                     icon = {
                         Icon(
+                            imageVector = Icons.Default.Home,
+                            contentDescription = "Inicio",
+                            tint = if (selectedTab == 0) SannaPrimary else SannaSecondaryText
+                        )
+                    },
+                    label = {
+                        Text(
+                            "Inicio",
+                            color = if (selectedTab == 0) SannaPrimary else SannaSecondaryText
+                        )
+                    }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
+                    icon = {
+                        Icon(
                             imageVector = Icons.Default.DateRange,
                             contentDescription = "Mis Citas",
                             tint = if (selectedTab == 0) SannaPrimary else SannaSecondaryText
@@ -45,7 +79,7 @@ fun HomePacienteScreen(
                     label = { Text("Mis Citas", color = if (selectedTab == 0) SannaPrimary else SannaSecondaryText) }
                 )
                 NavigationBarItem(
-                    selected = selectedTab == 1,
+                    selected = selectedTab == 2,
                     onClick = { onNavigateToReservar() },
                     icon = {
                         Icon(
@@ -57,8 +91,8 @@ fun HomePacienteScreen(
                     label = { Text("Reservar", color = SannaPrimary) }
                 )
                 NavigationBarItem(
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
+                    selected = selectedTab == 3,
+                    onClick = { selectedTab = 3 },
                     icon = {
                         Icon(
                             imageVector = Icons.Default.Person,
@@ -73,8 +107,36 @@ fun HomePacienteScreen(
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize().background(SannaBackground)) {
             when (selectedTab) {
-                0 -> MisCitasScreen(viewModel = citasViewModel, pacienteId = pacienteId, onCitaClick = onCitaClick)
-                2 -> PerfilScreen(userId = userId, onLogout = onLogout)
+
+
+                0 -> {
+                    DashboardPaciente(
+                        tieneCitas = proximaCita != null,
+                        fecha = proximaCita?.fecha ?: "",
+                        hora = proximaCita?.hora ?: "",
+                        motivo = proximaCita?.motivo ?: "",
+                        onVerCitas = {
+                            proximaCita?.let {
+                                onCitaClick(it.id)
+                            }
+                        }
+                    )
+                }
+
+                1 -> {
+                    MisCitasScreen(
+                        viewModel = citasViewModel,
+                        pacienteId = pacienteId,
+                        onCitaClick = onCitaClick
+                    )
+                }
+
+                3 -> {
+                    PerfilScreen(
+                        userId = userId,
+                        onLogout = onLogout
+                    )
+                }
             }
         }
     }
