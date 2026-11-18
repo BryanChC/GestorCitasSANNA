@@ -29,7 +29,7 @@ class AdminViewModel(application: Application) : AndroidViewModel(application) {
     val citas = repository.getCitasFlow()
     val aseguradoras = repository.getAseguradorasFlow()
 
-    private val _stats = MutableStateFlow(DashboardStats(0, 0, 0))
+    private val _stats = MutableStateFlow(DashboardStats(0, 0, 0, especialidadesCount = 0))
     val stats: StateFlow<DashboardStats> = _stats.asStateFlow()
 
     init {
