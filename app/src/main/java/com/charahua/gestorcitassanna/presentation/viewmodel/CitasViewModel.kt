@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.charahua.gestorcitassanna.data.local.database.SannaDatabase
 import com.charahua.gestorcitassanna.data.local.entity.*
 import com.charahua.gestorcitassanna.data.repository.CitaRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -34,6 +35,13 @@ class CitasViewModel(application: Application) : AndroidViewModel(application) {
     private val _aseguradoras = MutableStateFlow<List<AseguradoraEntity>>(emptyList())
     val aseguradoras: StateFlow<List<AseguradoraEntity>> = _aseguradoras.asStateFlow()
 
+    // TABLAS INTERMEDIAS PARA EL DIRECTORIO MÉDICO
+    private val _medicoEspecialidades = MutableStateFlow<List<MedicoEspecialidadEntity>>(emptyList())
+    val medicoEspecialidades: StateFlow<List<MedicoEspecialidadEntity>> = _medicoEspecialidades.asStateFlow()
+
+    private val _medicoSedes = MutableStateFlow<List<MedicoSedeEntity>>(emptyList())
+    val medicoSedes: StateFlow<List<MedicoSedeEntity>> = _medicoSedes.asStateFlow()
+
     private val _tarifaActual = MutableStateFlow<Double>(0.0)
     val tarifaActual: StateFlow<Double> = _tarifaActual.asStateFlow()
 
@@ -52,6 +60,20 @@ class CitasViewModel(application: Application) : AndroidViewModel(application) {
             _sedes.value = repository.getSedes()
             _especialidades.value = repository.getEspecialidades()
             _aseguradoras.value = repository.getAseguradoras()
+        }
+    }
+
+    fun loadAllMedicos() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+
+                _medicos.value = db.medicoDao().getAll()
+
+                _medicoEspecialidades.value = db.medicoEspecialidadDao().getAll()
+                _medicoSedes.value = db.medicoSedeDao().getAll()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
